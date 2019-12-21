@@ -1,0 +1,93 @@
+
+Sub CalculateStocks()
+    Dim ws As Worksheet
+    Dim starting_ws As Worksheet
+    Set starting_ws = ActiveSheet
+    
+    For Each ws In ThisWorkbook.Worksheets
+    ws.Activate
+        Dim Ticker_name As String
+        Dim Price_diff As Double
+        Price_diff = 0
+        Dim Percent_diff As Double
+        Dim openPrice As Double
+        Dim closePrice As Double
+        'Dim vC As Long - Not declaring total stock volume vC as Long since it was still very small to handle
+        Dim vC
+        vC = 0
+        Dim tempVC As Long
+        Dim Summary_Table_row As Integer
+        Summary_Table_row = 2
+        
+        Dim Challenge_Table_head As Integer
+        Challenge_Table_head = 1
+        
+        Dim Challenge_Table_row As Integer
+     
+        ws.Cells(1, 9).Value = "Ticker"
+        ws.Cells(1, 10).Value = "Yearly Change"
+        ws.Cells(1, 11).Value = "Percent Change"
+        ws.Cells(1, 12).Value = "Total Stock Volume"
+        lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        For i = 2 To lastrow
+            If ws.Cells(i + 1, 1).Value = ws.Cells(i, 1).Value Then
+                Ticker_name = ws.Cells(i, 1).Value
+                tempVC = ws.Cells(i, 7).Value
+                vC = vC + tempVC
+                If Cells(i, 2).Value Like "*0101" Then
+                    openPrice = Round(ws.Cells(i, 3).Value, 2)
+                 End If
+            ElseIf ws.Cells(i - 1, 1).Value = ws.Cells(i, 1).Value Then
+                vC = vC + ws.Cells(i, 7).Value
+                Range("I" & Summary_Table_row).Value = Ticker_name
+                Range("L" & Summary_Table_row).Value = vC
+                vC = 0
+                If ws.Cells(i, 2).Value Like "*1230" Then
+                    closePrice = Round(ws.Cells(i, 6).Value, 2)
+                End If
+        
+                    Price_diff = closePrice - openPrice
+                    Percent_diff = (Price_diff / openPrice) * 100
+            
+                Range("J" & Summary_Table_row).Value = Price_diff
+                If Price_diff < 0 Then
+                    Range("J" & Summary_Table_row).Interior.Color = RGB(255, 0, 0)
+                Else
+                    Range("J" & Summary_Table_row).Interior.Color = RGB(0, 255, 0)
+                 End If
+                Range("K" & Summary_Table_row).Value = Round(Percent_diff, 2)
+                Summary_Table_row = Summary_Table_row + 1
+            End If
+                             Price_diff = 0
+                Percent_diff = 0
+            Next i
+           
+                Range("O2").Value = "Greatest % Increase"
+                Range("O3").Value = "Greatest % Decrease"
+                Range("O4").Value = "Greatest Total Volume"
+                Range("P1").Value = "Ticker"
+                Range("Q1").Value = "Value"
+                Dim c As Range
+                Set c = Range("K2:K" & Rows.Count)
+                        
+                Range("Q3").Value = Application.WorksheetFunction.Min(c)
+                Range("Q2").Value = Application.WorksheetFunction.Max(c)
+                'Range("K:K").NumberFormat = "0.00%"
+                'Range("Q2").NumberFormat = "0.00%"
+                'Range("Q3").NumberFormat = "Percent"
+                        
+                Dim d As Range
+                Set d = Range("L2:L" & Rows.Count)
+                Range("Q4").Value = Application.WorksheetFunction.Max(d)
+                
+                Range("P2").Formula = "=INDEX(I2:I290,MATCH(Q2,K2:K290,0))"
+                Range("P3").Formula = "=INDEX(I2:I290,MATCH(Q3,K2:K290,0))"
+                Range("P4").Formula = "=INDEX(I2:I290,MATCH(Q4,L2:L290,0))"
+                
+               
+            
+    Next
+    starting_ws.Activate
+MsgBox ("Fixes Complete")
+
+End Sub
